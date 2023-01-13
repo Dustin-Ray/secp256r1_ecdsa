@@ -164,5 +164,5 @@ func setupKeyTable(ctx *WindowCtx) {
 		ctx.updateStatus("key " + ctx.loadedKey.Id + " selected")
 
 	})
-	rightCLickMenu(ctx)
+
 }
