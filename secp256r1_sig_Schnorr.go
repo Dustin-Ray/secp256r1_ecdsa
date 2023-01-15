@@ -40,11 +40,12 @@ func sign_message_schnorr(msg *[]byte) (ecdsa.PublicKey, *big.Int, *big.Int) {
 	}
 	x := big.NewInt(0).SetBytes(x_bytes)
 
-	// random k from allowed set
+	// random k from allowed set [1..n-1]
 	k_read := rand.Reader
 	k_bytes := make([]byte, 32)
 	k_read.Read(k_bytes)
 	k := big.NewInt(0).SetBytes(k_bytes)
+	k.Add(k, big.NewInt(1))
 	k = k.Mod(k, n)
 
 	r_x, _ := g.ScalarBaseMult(k.Bytes())

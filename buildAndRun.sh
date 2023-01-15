@@ -5,6 +5,6 @@
 # Loop through the list of files
 	# Compile the file
 # go build view.go model.go sponge.go keccakf.go utilities.go cSHAKE.go dialogs.go controller.go keyTable.go E521.go message_formatter.go E521Tests.go secp256k1_sig.go
-go build ecdsa.go
+go build secp256r1_ecdsa.go
 # # Run the executable
- ./ecdsa
+ ./secp256r1_ecdsa

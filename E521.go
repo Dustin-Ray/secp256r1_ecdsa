@@ -18,7 +18,7 @@ type E521 struct {
 	p big.Int // 𝑝 := 2⁵²¹−1, a Mersenne prime defining the finite field 𝔽𝑝.
 	d big.Int // d = -376014, properly defined value for d guarantees point addition formula produces point on curve
 	r big.Int // number of points on Curve -> n := 4 * (R) .
-	n big.Int //4 * r
+	n big.Int // 4 * r
 }
 
 // number of points on Curve -> n := 4 * (R) .
@@ -120,7 +120,7 @@ func (A *E521) Equals(B *E521) bool { return A.x.Cmp(&B.x) == 0 && A.y.Cmp(&B.y)
 Adds two E521 points and returns another E521 curve point.
 Point addition operation is defined as:
 
-	(x1, y1) + (x2, y2) = ((x1y2 + y1x2) / (1 + (d)x1x2y1y2)), ((y1y2 - x1x2) / (1 - (d)x1x2y1y2))
+	(x₁, y₁) + (x₂, y₂)  = (x₁y₂ + y₁x₂) / (1 + dx₁x₂y₁y₂), (y₁y₂ − x₁x₂) / (1 − dx₁x₂y₁y₂)
 
 where "/" is defined to be multiplication by modular inverse.
 */
