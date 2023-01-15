@@ -9,7 +9,7 @@ import (
 )
 
 /** Program entry point, establishes keys and message */
-func main() {
+func run_secp256r1_sig() {
 	rnd := rand.Reader
 	// Get generator point for curve
 	secp256r1 := elliptic.P256()
@@ -22,7 +22,7 @@ func main() {
 	// Generate a 256 bit random secret key
 	d_a_bytes := make([]byte, 32)
 	rnd.Read(d_a_bytes)
-	d_a := big.NewInt(0).SetBytes(d_a_bytes)
+	d_a := new(big.Int).SetBytes(d_a_bytes)
 
 	// Get the public verification key dₐ × G
 	pub_x, pub_y := g.ScalarBaseMult(d_a_bytes)
@@ -64,13 +64,13 @@ func sign_message_ecdsa(msg *[]byte, d_a *big.Int) (*big.Int, *big.Int) {
 
 	// 2. Let Z be Lₙ leftmost bits of e, where Lₙ is bit length of group order
 	// n ← 256 bits for secp256r1
-	z := big.NewInt(0).SetBytes(e[:32]) //FIPS 186-4 Sec 6.4
+	z := new(big.Int).SetBytes(e[:32]) //FIPS 186-4 Sec 6.4
 
 	// 3. select cryptographically secure random integer k from [1, n-1].
 	//	  k cannot = n or 0 because (n⁻¹ mod n), (0⁻¹ mod n) do not exist
 	k_bytes := make([]byte, 32+8) // FIPS 186-4 Appendix B.5.2 get N + 64 extra bits
 	rnd.Read(k_bytes)
-	k := big.NewInt(0).SetBytes(k_bytes)
+	k := new(big.Int).SetBytes(k_bytes)
 	one := big.NewInt(1)
 	k = k.Add(k, one)
 	k = k.Mod(k, n)     // assure k in valid range.
@@ -92,13 +92,13 @@ func sign_message_ecdsa(msg *[]byte, d_a *big.Int) (*big.Int, *big.Int) {
 	// if r = 0 then r*dₐ = 0 and s = k⁻¹(z), so adversary has z and can
 	// recover k⁻¹ and thus k and can forge a sig
 	// for this message
-	r := big.NewInt(0).Mod(x1, n)
+	r := new(big.Int).Mod(x1, n)
 
 	// 6. calculate s = k⁻¹(z + rdₐ) mod n if S = 0, get a new k
 	// S cannot = 0 becase 0⁻¹ mod n does not exist
-	k_inv := big.NewInt(0).ModInverse(k, n) // SECURITY NOTE: big.Int modInv is not constant ops
-	s := big.NewInt(0).Mul(k_inv, big.NewInt(0).Add(z, big.NewInt(0).Mul(r, d_a)))
-	s = big.NewInt(0).Mod(s, n)
+	k_inv := new(big.Int).ModInverse(k, n) // SECURITY NOTE: big.Int modInv is not constant ops
+	s := new(big.Int).Mul(k_inv, new(big.Int).Add(z, new(big.Int).Mul(r, d_a)))
+	s = new(big.Int).Mod(s, n)
 
 	// 7. sig is pair (r, s)
 	return r, s
@@ -144,15 +144,15 @@ func verify_ecdsa_sig(Q_a *ecdsa.PublicKey, r, s *big.Int, msg *[]byte) bool {
 			e := sha256.Sum256(*msg)
 			// 3. Let Z be Lₙ leftmost bits of e, where Lₙ is bit length of
 			// if group order n ← 256 bits for secp256k1
-			z := big.NewInt(0).SetBytes(e[:32])
+			z := new(big.Int).SetBytes(e[:32])
 			// 4.a. u₁ = zs⁻¹ mod n
-			s_inv := big.NewInt(0).ModInverse(s, n) // Compute s⁻¹ only once
-			zs_inv := big.NewInt(0).Mul(z, s_inv)
-			u1 := big.NewInt(0).Mod(zs_inv, n)
+			s_inv := new(big.Int).ModInverse(s, n) // Compute s⁻¹ only once
+			zs_inv := new(big.Int).Mul(z, s_inv)
+			u1 := new(big.Int).Mod(zs_inv, n)
 
 			// 4.b. u₂ = rs⁻¹ mod n
-			u2 := big.NewInt(0).Mul(r, s_inv)
-			u2 = big.NewInt(0).Mod(u2, n)
+			u2 := new(big.Int).Mul(r, s_inv)
+			u2 = new(big.Int).Mod(u2, n)
 
 			// 5. Calculate curve point (x₁, y₁) = u₁ × G + u₂ × Qₐ
 			// if (x₁, y₁) = 𝒪 then signature is invalid
