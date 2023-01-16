@@ -51,7 +51,7 @@ Signing a message:
 	https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm
 
 	msg: pointer to message to be signed
-	d_a: private signing key which corresponds to public signing key Q_a
+	d_a: private signing key which corresponds to public verification key Q_a
 	return: signature (r, s)
 */
 func sign_message_ecdsa(msg *[]byte, d_a *big.Int) (*big.Int, *big.Int) {
