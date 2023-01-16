@@ -5,20 +5,28 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
+	"fmt"
 	"math/big"
+	"time"
 )
 
-func run() {
-	for i := 0; i < 100; i++ {
-		rnd := rand.Reader
-		data := make([]byte, 5242880) //5mb random data
-		rnd.Read(data)
-		key, sig, e := sign_message_schnorr(&data)
-		println(verify_sig(&key, sig, e, &data))
+func run_secp256_schnorr() {
+	total := 0
+	loops := 100
+	rnd := rand.Reader
+	data := make([]byte, 52428) //5mb random data
+	rnd.Read(data)
+	for i := 0; i < loops; i++ {
+		start := time.Now()
+		key, sig, e := sign_message_secp256(&data)
+		verify_sig_secp256(&key, sig, e, &data)
+		elapsed := time.Since(start)
+		total += int(elapsed.Microseconds())
 	}
+	fmt.Println("avg μs to sign and verify secp256: ", total/loops)
 }
 
-func sign_message_schnorr(msg *[]byte) (ecdsa.PublicKey, *big.Int, *big.Int) {
+func sign_message_secp256(msg *[]byte) (ecdsa.PublicKey, *big.Int, *big.Int) {
 	secp256r1 := elliptic.P256() // aka secp256r1
 	n := secp256r1.Params().Params().N
 
@@ -65,7 +73,7 @@ let e_v Hash(r_v || M)
 
 return true iff e_v = e
 */
-func verify_sig(y *ecdsa.PublicKey, s, e *big.Int, msg *[]byte) bool {
+func verify_sig_secp256(y *ecdsa.PublicKey, s, e *big.Int, msg *[]byte) bool {
 	curve := elliptic.P256() // aka secp256r1
 
 	g := ecdsa.PublicKey{

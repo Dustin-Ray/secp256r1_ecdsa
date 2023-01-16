@@ -59,7 +59,7 @@ func NewE222X(x big.Int, msb uint) *E222 {
 }
 
 // Generator point for the curve
-func E222GenPoint(msb uint) *E222 {
+func E222GenPoint() *E222 {
 	tempR := new(E222).getR()
 
 	P := new(E222).getP()
@@ -113,7 +113,7 @@ func (A *E222) Equals(B *E222) bool { return A.x.Cmp(&B.x) == 0 && A.y.Cmp(&B.y)
 Adds two E222 points and returns another E222 curve point.
 Point addition operation is defined as:
 
-	(x1, y1) + (x2, y2) = ((x1y2 + y1x2) / (1 + (d)x1x2y1y2)), ((y1y2 - x1x2) / (1 - (d)x1x2y1y2))
+	(x₁, y₁) + (x₂, y₂)  = (x₁y₂ + y₁x₂) / (1 + dx₁x₂y₁y₂), (y₁y₂ − x₁x₂) / (1 − dx₁x₂y₁y₂)
 
 where "/" is defined to be multiplication by modular inverse.
 */
@@ -170,6 +170,16 @@ func (r1 *E222) SecMul(S *big.Int) *E222 {
 		}
 	}
 	return r0 // r0 = P * s
+}
+
+// Solves curve eq with p = (x, y)
+// 𝑥² + 𝑦² = 1 + 𝑑𝑥²𝑦²
+func (p *E222) IsOnCurve() bool {
+	x_sq := new(big.Int).Exp(&p.x, big.NewInt(2), nil)
+	y_sq := new(big.Int).Exp(&p.y, big.NewInt(2), nil)
+	sum := new(big.Int).Add(x_sq, y_sq)
+	prod := new(big.Int).Mul(x_sq, y_sq)
+	return sum.Cmp(new(big.Int).Add(big.NewInt(1), new(big.Int).Mul(&p.d, prod))) == 0
 }
 
 /*

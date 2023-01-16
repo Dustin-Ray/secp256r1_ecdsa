@@ -6,7 +6,7 @@ import (
 	"math/big"
 )
 
-func main() {
+func e222_tests() {
 
 	Zero()
 	One()
@@ -42,8 +42,8 @@ func One() {
 	passedTestCount := 0
 	numberOfTests := 100
 	for i := 0; i < numberOfTests; i++ {
-		G := E222GenPoint(0)
-		if G.SecMul(big.NewInt(1)).Equals(E222GenPoint(0)) {
+		G := E222GenPoint()
+		if G.SecMul(big.NewInt(1)).Equals(E222GenPoint()) {
 			passedTestCount++
 		} else {
 			break
@@ -57,8 +57,8 @@ func GPlusMinusG() {
 	passedTestCount := 0
 	numberOfTests := 100
 	for i := 0; i < numberOfTests; i++ {
-		G := E222GenPoint(0)
-		if G.Add(E222GenPoint(0).getOpposite()).Equals(E222IdPoint()) {
+		G := E222GenPoint()
+		if G.Add(E222GenPoint().getOpposite()).Equals(E222IdPoint()) {
 			passedTestCount++
 		} else {
 			break
@@ -72,7 +72,7 @@ func TwoTimesG() {
 	passedTestCount := 0
 	numberOfTests := 1
 	for i := 0; i < numberOfTests; i++ {
-		G := E222GenPoint(0)
+		G := E222GenPoint()
 		p := G.SecMul(big.NewInt(2))
 		fmt.Println(p.x.String())
 		fmt.Println(p.y.String())
@@ -90,7 +90,7 @@ func FourTimesG() {
 	passedTestCount := 0
 	numberOfTests := 100
 	for i := 0; i < numberOfTests; i++ {
-		G := E222GenPoint(0)
+		G := E222GenPoint()
 		if G.SecMul(big.NewInt(4)).Equals(G.SecMul(big.NewInt(2)).SecMul(big.NewInt(2))) {
 			passedTestCount++
 		} else {
@@ -105,7 +105,7 @@ func NotZero() {
 	passedTestCount := 0
 	numberOfTests := 100
 	for i := 0; i < numberOfTests; i++ {
-		G := E222GenPoint(0)
+		G := E222GenPoint()
 		if !G.SecMul(big.NewInt(4)).Equals(E222IdPoint()) {
 			passedTestCount++
 		} else {
@@ -121,7 +121,7 @@ func rTimesG() {
 	passedTestCount := 0
 	numberOfTests := 100
 	for i := 0; i < numberOfTests; i++ {
-		G := E222GenPoint(0)
+		G := E222GenPoint()
 		if G.SecMul(&G.r).Equals(E222IdPoint()) {
 			passedTestCount++
 		} else {
@@ -132,7 +132,7 @@ func rTimesG() {
 }
 
 func TestkTimesGAndkmodRTimesG() {
-	G := E222GenPoint(0)
+	G := E222GenPoint()
 	R := G.getR()
 
 	passedTestCount := 0
@@ -156,10 +156,10 @@ func TestkPlus1TimesG() {
 	numberOfTests := 50
 	for i := 0; i < numberOfTests; i++ {
 		k := generateRandomBigInt()
-		G2 := E222GenPoint(0).SecMul(k)
-		G2 = G2.Add(E222GenPoint(0))
+		G2 := E222GenPoint().SecMul(k)
+		G2 = G2.Add(E222GenPoint())
 		k = k.Add(k, big.NewInt(1))
-		G1 := E222GenPoint(0).SecMul(k)
+		G1 := E222GenPoint().SecMul(k)
 		if G1.Equals(G2) {
 			passedTestCount++
 		} else {
@@ -177,11 +177,11 @@ func ktTimesgEqualskgtg() {
 		k := generateRandomBigInt()
 		t := generateRandomBigInt()
 
-		G2 := E222GenPoint(0).SecMul(k)
-		G2 = G2.Add(E222GenPoint(0).SecMul(t))
+		G2 := E222GenPoint().SecMul(k)
+		G2 = G2.Add(E222GenPoint().SecMul(t))
 
 		x := new(big.Int).Add(k, t)
-		G1 := E222GenPoint(0).SecMul(x)
+		G1 := E222GenPoint().SecMul(x)
 
 		if G1.Equals(G2) {
 			passedTestCount++
@@ -200,12 +200,12 @@ func ktpEqualstkGEqualsktmodrG() {
 		k := generateRandomBigInt()
 		t := generateRandomBigInt()
 
-		ktP := E222GenPoint(0).SecMul(t).SecMul(k)
-		tkG := E222GenPoint(0).SecMul(k).SecMul(t)
+		ktP := E222GenPoint().SecMul(t).SecMul(k)
+		tkG := E222GenPoint().SecMul(k).SecMul(t)
 
 		ktmodr := k.Mul(k, t)
-		ktmodr = ktmodr.Mod(ktmodr, &E222GenPoint(0).r)
-		ktmodrG := E222GenPoint(0).SecMul(ktmodr)
+		ktmodr = ktmodr.Mod(ktmodr, &E222GenPoint().r)
+		ktmodrG := E222GenPoint().SecMul(ktmodr)
 
 		if ktP.Equals(tkG) && ktP.Equals(ktmodrG) {
 			passedTestCount++
