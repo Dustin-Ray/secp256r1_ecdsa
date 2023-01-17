@@ -9,7 +9,7 @@ import (
 )
 
 /** Program entry point, establishes keys and message */
-func run_ecdsa() {
+func main() {
 	rnd := rand.Reader
 	// Get generator point for curve
 	secp256r1 := elliptic.P256()
