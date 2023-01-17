@@ -14,7 +14,7 @@ func run_e222_schnorr() {
 	total := 0
 	loops := 100
 	rnd := rand.Reader
-	data := make([]byte, 52428)
+	data := make([]byte, 5242880/5/10/10)
 	rnd.Read(data)
 	for i := 0; i < loops; i++ {
 		start := time.Now()

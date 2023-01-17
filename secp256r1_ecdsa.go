@@ -9,7 +9,7 @@ import (
 )
 
 /** Program entry point, establishes keys and message */
-func run_secp256r1_ecdsa() {
+func run_ecdsa() {
 	rnd := rand.Reader
 	// Get generator point for curve
 	secp256r1 := elliptic.P256()
@@ -32,25 +32,26 @@ func run_secp256r1_ecdsa() {
 		Y:     pub_y,
 	}
 
-	// data := make([]byte, 5242880) //random 5mb
-	// rnd.Read(data)
-	sign_data := []byte("00000000")
-	vrfy_data := []byte("00000000")
+	message := make([]byte, 5242880) //random 5mb
+	rnd.Read(message)
+
 	// Sign data using private signing key
-	r, s := sign_message_ecdsa(&sign_data, d_a)
-	res := verify_ecdsa_sig(&Q_a, r, s, &vrfy_data)
+	r, s := sign_message_ecdsa(&message, d_a)
+	// message[0] ^= 1 // bit flip test
+	res := verify_ecdsa_sig(&Q_a, r, s, &message)
 	println("Verified: ", res)
 }
 
 /*
 Signing a message:
 
-	This approach relies on specifications obtained from:
+	This approach Implements the following NIST Specification:
 	NIST FIPS 186-4 Section 6
+	Supported by:
 	https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm
 
 	msg: pointer to message to be signed
-	d_a: private signing key which corresponds to public signing key Q_a
+	d_a: private signing key which corresponds to public verification key Q_a
 	return: signature (r, s)
 */
 func sign_message_ecdsa(msg *[]byte, d_a *big.Int) (*big.Int, *big.Int) {
@@ -72,7 +73,7 @@ func sign_message_ecdsa(msg *[]byte, d_a *big.Int) (*big.Int, *big.Int) {
 	rnd.Read(k_bytes)
 	k := new(big.Int).SetBytes(k_bytes)
 	one := big.NewInt(1)
-	k = k.Add(k, one)
+	k = k.Add(k, one)   // assure non-zero k
 	k = k.Mod(k, n)     // assure k in valid range.
 	k_bytes = k.Bytes() // Security Remark: unknown if golang big.Int operations are constant ops
 
@@ -90,8 +91,7 @@ func sign_message_ecdsa(msg *[]byte, d_a *big.Int) (*big.Int, *big.Int) {
 
 	// 5. Calculate r = x₁ mod n, if r = 0, get a new k
 	// if r = 0 then r*dₐ = 0 and s = k⁻¹(z), so adversary has z and can
-	// recover k⁻¹ and thus k and can forge a sig
-	// for this message
+	// recover k⁻¹ and thus k and can forge signatures
 	r := new(big.Int).Mod(x1, n)
 
 	// 6. calculate s = k⁻¹(z + rdₐ) mod n if S = 0, get a new k
@@ -106,9 +106,9 @@ func sign_message_ecdsa(msg *[]byte, d_a *big.Int) (*big.Int, *big.Int) {
 
 /*
 Verifies a signature (r, s) against a public key Qₐ
-Remark: Since r = x1 mod n, it is possible to recover the public key from
-the signature. This requires trying all curve points corresponding to r, y.
-This reduces signature and transmission size requirements.
+Remark: by https://www.secg.org/sec1-v2.pdf 4.1.6 (page 47)
+It is possible to recover Qₐ from (r, s)
+This can reduce signature and transmission size requirements.
 
 	returns true iff signature is validated against key
 */
@@ -127,7 +127,7 @@ func verify_ecdsa_sig(Q_a *ecdsa.PublicKey, r, s *big.Int, msg *[]byte) bool {
 	// 1. Check Qₐ != 𝒪
 	// 2. Check Qₐ ∈ 𝔼
 	// 3. Check n × Qₐ = 𝒪
-	n_x, n_y := g.ScalarBaseMult(n.Bytes()) //get the neutral point for curve
+	n_x, n_y := g.ScalarBaseMult(n.Bytes()) // get the neutral point for curve
 	not_neutral := n_x != Q_a.X && n_y != Q_a.Y
 	on_curve := g.IsOnCurve(Q_a.X, Q_a.Y)
 	test_x, test_y := g.ScalarMult(Q_a.X, Q_a.Y, n.Bytes())
@@ -143,7 +143,7 @@ func verify_ecdsa_sig(Q_a *ecdsa.PublicKey, r, s *big.Int, msg *[]byte) bool {
 			// 2. Calculate e using same hash function as signature generation
 			e := sha256.Sum256(*msg)
 			// 3. Let Z be Lₙ leftmost bits of e, where Lₙ is bit length of
-			// if group order n ← 256 bits for secp256k1
+			// group order n ← 256 bits for secp256k1
 			z := new(big.Int).SetBytes(e[:32])
 			// 4.a. u₁ = zs⁻¹ mod n
 			s_inv := new(big.Int).ModInverse(s, n) // Compute s⁻¹ only once
@@ -155,9 +155,9 @@ func verify_ecdsa_sig(Q_a *ecdsa.PublicKey, r, s *big.Int, msg *[]byte) bool {
 			u2 = new(big.Int).Mod(u2, n)
 
 			// 5. Calculate curve point (x₁, y₁) = u₁ × G + u₂ × Qₐ
-			// if (x₁, y₁) = 𝒪 then signature is invalid
-			// 𝒪 cannot be a valid curve point because if it was then either:
-			// u₁ × G or u₂ × Qₐ can be solved for and signatures can be forged
+			// if (x₁, y₁) = 𝒪 then signature is invalid because for curves in
+			// Weierstrass form, 𝒪 is conventionally represented
+			// by a point that doesn’t satisfy the curve equation.
 			x1, y1 := g.ScalarBaseMult(u1.Bytes())
 
 			// Remark: possible to reduce number of multiplcations here
