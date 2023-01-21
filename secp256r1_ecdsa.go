@@ -37,7 +37,7 @@ func main() {
 
 	// Sign data using private signing key
 	r, s := sign_message_ecdsa(&message, d_a)
-	// message[0] ^= 1 // bit flip test
+	message[0] ^= 1 // bit flip test
 	res := verify_ecdsa_sig(&Q_a, r, s, &message)
 	println("Verified: ", res)
 }
